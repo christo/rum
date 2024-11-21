@@ -8,11 +8,11 @@ type ArrayID = u32;
 
 #[derive(Default)]
 struct UniversalMachine {
-    regs: [Platter; 8],
+    regs: [u32; 8],
     arrays: HashMap<ArrayID, Vec<Platter>>,
     free_ids: Vec<ArrayID>,
     execution_finger: usize,
-    program: Vec<Platter>,
+    program: Vec<u32>,
 }
 
 const CONDITIONAL_MOVE: u32 = 0;
