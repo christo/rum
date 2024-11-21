@@ -12,3 +12,7 @@ or so the backstory goes.
 
 Once the VM boots with the provided image (after much debugging) the main sequence of puzzles is revealed in
 a hilarious adventure. 
+
+You might like to use [clueslurp](https://github.com/christo/clueslurp), my streaming command-line
+filter for grabbing the "publications" which appear in the console output, signifying each  
+_achievement unlocked_ moment.
