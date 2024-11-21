@@ -5,5 +5,5 @@ cargo build --release
 echo running codex, decrypting
 target/release/rum codex.umz <key.txt >output.raw
 echo stripping prelude of ascii blurb
-dd if=output.raw of=main.um bs=1 skip=198
+./strip_prelude.py < output.raw >main.um
 echo main.um stripped image
