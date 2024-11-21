@@ -7,5 +7,5 @@ echo release build
 cargo build --release
 echo decrypting codex
 # p dumps uncompressed, decrypted um image
-(echo "$DECRYPTION_KEY"; echo p) | target/release/rum codex.umz | ./strip_prelude.py >main.um
+(echo "$DECRYPTION_KEY"; echo -n p) | target/release/rum codex.umz | ./strip_prelude.py >main.um
 echo main.um stripped image
