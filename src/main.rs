@@ -8,7 +8,7 @@ type ArrayID = u32;
 
 #[derive(Default)]
 struct UniversalMachine {
-    registers: [Platter; 8],
+    regs: [Platter; 8],
     arrays: HashMap<ArrayID, Vec<Platter>>,
     free_ids: Vec<ArrayID>,
     execution_finger: usize,
@@ -52,52 +52,52 @@ impl UniversalMachine {
             let operator = instruction >> 28;
             match operator {
                 CONDITIONAL_MOVE => {
-                    if self.registers[c] != 0 {
-                        self.registers[a] = self.registers[b];
+                    if self.regs[c] != 0 {
+                        self.regs[a] = self.regs[b];
                     }
                 }
                 ARRAY_INDEX => {
                     let array = self
                         .arrays
-                        .get(&self.registers[b])
+                        .get(&self.regs[b])
                         .expect("Array not found");
-                    self.registers[a] = array[self.registers[c] as usize];
+                    self.regs[a] = array[self.regs[c] as usize];
                 }
                 ARRAY_AMENDMENT => {
                     let array = self
                         .arrays
-                        .get_mut(&self.registers[a])
+                        .get_mut(&self.regs[a])
                         .expect("Array not found");
-                    array[self.registers[b] as usize] = self.registers[c];
+                    array[self.regs[b] as usize] = self.regs[c];
                 }
                 ADDITION => {
-                    self.registers[a] = self.registers[b].wrapping_add(self.registers[c]);
+                    self.regs[a] = self.regs[b].wrapping_add(self.regs[c]);
                 }
                 MULTIPLICATION => {
-                    self.registers[a] = self.registers[b].wrapping_mul(self.registers[c]);
+                    self.regs[a] = self.regs[b].wrapping_mul(self.regs[c]);
                 }
                 DIVISION => {
-                    if self.registers[c] == 0 {
+                    if self.regs[c] == 0 {
                         panic!("Division by zero");
                     }
-                    self.registers[a] = self.registers[b] / self.registers[c];
+                    self.regs[a] = self.regs[b] / self.regs[c];
                 }
                 NOT_AND => {
-                    self.registers[a] = !(self.registers[b] & self.registers[c]);
+                    self.regs[a] = !(self.regs[b] & self.regs[c]);
                 }
                 HALT => break, // Halt
                 ALLOCATION => {
-                    let size = self.registers[c] as usize;
+                    let size = self.regs[c] as usize;
                     let id = if let Some(id) = self.free_ids.pop() {
                         id
                     } else {
                         self.arrays.len() as ArrayID
                     };
                     self.arrays.insert(id, vec![0; size]);
-                    self.registers[b] = id;
+                    self.regs[b] = id;
                 }
                 ABANDONMENT => {
-                    let id = self.registers[c];
+                    let id = self.regs[c];
                     if id == 0 {
                         panic!("Cannot abandon array 0");
                     } else if !self.arrays.contains_key(&id) {
@@ -107,11 +107,11 @@ impl UniversalMachine {
                     self.free_ids.push(id);
                 }
                 OUTPUT => {
-                    let value = self.registers[c];
+                    let value = self.regs[c];
                     if value > 255 {
                         panic!("Output value out of range");
                     }
-                    let value = self.registers[c];
+                    let value = self.regs[c];
                     if value > 255 {
                         panic!("Output value out of range");
                     }
@@ -124,27 +124,27 @@ impl UniversalMachine {
                 INPUT => {
                     let mut buffer = [0; 1];
                     if let Ok(_) = io::stdin().read_exact(&mut buffer) {
-                        self.registers[c] = buffer[0] as Platter;
+                        self.regs[c] = buffer[0] as Platter;
                     } else {
-                        self.registers[c] = u32::MAX;
+                        self.regs[c] = u32::MAX;
                     }
                 }
                 LOAD_PROGRAM => {
-                    if self.registers[b] != 0 {
+                    if self.regs[b] != 0 {
                         let program = self
                             .arrays
-                            .get(&self.registers[b])
+                            .get(&self.regs[b])
                             .expect("Array not found")
                             .clone();
                         self.arrays.insert(0, program.clone());
                         self.program = program;
                     }
-                    self.execution_finger = self.registers[c] as usize;
+                    self.execution_finger = self.regs[c] as usize;
                 }
                 ORTHOGRAPHY => {
                     let a = ((instruction >> 25) & 0x7) as usize;
                     let value = instruction & 0x1FFFFFF;
-                    self.registers[a] = value;
+                    self.regs[a] = value;
                 }
                 _ => panic!("Invalid operator: {}", operator),
             }
