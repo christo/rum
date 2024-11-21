@@ -15,6 +15,21 @@ struct UniversalMachine {
     program: Vec<Platter>,
 }
 
+const CONDITIONAL_MOVE: u32 = 0;
+const ARRAY_INDEX: u32 = 1;
+const ARRAY_AMENDMENT: u32 = 2;
+const ADDITION: u32 = 3;
+const MULTIPLICATION: u32 = 4;
+const DIVISION: u32 = 5;
+const NOT_AND: u32 = 6;
+const HALT: u32 = 7;
+const ALLOCATION: u32 = 8;
+const ABANDONMENT: u32 = 9;
+const OUTPUT: u32 = 10;
+const INPUT: u32 = 11;
+const LOAD_PROGRAM: u32 = 12;
+const ORTHOGRAPHY: u32 = 13;
+
 impl UniversalMachine {
     pub fn new(program: Vec<Platter>) -> Self {
         let mut um = UniversalMachine::default();
@@ -36,42 +51,42 @@ impl UniversalMachine {
             let c = (instruction & 0x7) as usize;
             let operator = instruction >> 28;
             match operator {
-                0 => {
+                CONDITIONAL_MOVE => {
                     if self.registers[c] != 0 {
                         self.registers[a] = self.registers[b];
                     }
                 }
-                1 => {
+                ARRAY_INDEX => {
                     let array = self
                         .arrays
                         .get(&self.registers[b])
                         .expect("Array not found");
                     self.registers[a] = array[self.registers[c] as usize];
                 }
-                2 => {
+                ARRAY_AMENDMENT => {
                     let array = self
                         .arrays
                         .get_mut(&self.registers[a])
                         .expect("Array not found");
                     array[self.registers[b] as usize] = self.registers[c];
                 }
-                3 => {
+                ADDITION => {
                     self.registers[a] = self.registers[b].wrapping_add(self.registers[c]);
                 }
-                4 => {
+                MULTIPLICATION => {
                     self.registers[a] = self.registers[b].wrapping_mul(self.registers[c]);
                 }
-                5 => {
+                DIVISION => {
                     if self.registers[c] == 0 {
                         panic!("Division by zero");
                     }
                     self.registers[a] = self.registers[b] / self.registers[c];
                 }
-                6 => {
+                NOT_AND => {
                     self.registers[a] = !(self.registers[b] & self.registers[c]);
                 }
-                7 => break, // Halt
-                8 => {
+                HALT => break, // Halt
+                ALLOCATION => {
                     let size = self.registers[c] as usize;
                     let id = if let Some(id) = self.free_ids.pop() {
                         id
@@ -81,7 +96,7 @@ impl UniversalMachine {
                     self.arrays.insert(id, vec![0; size]);
                     self.registers[b] = id;
                 }
-                9 => {
+                ABANDONMENT => {
                     let id = self.registers[c];
                     if id == 0 {
                         panic!("Cannot abandon array 0");
@@ -91,7 +106,7 @@ impl UniversalMachine {
                     self.arrays.remove(&id);
                     self.free_ids.push(id);
                 }
-                10 => {
+                OUTPUT => {
                     let value = self.registers[c];
                     if value > 255 {
                         panic!("Output value out of range");
@@ -101,20 +116,20 @@ impl UniversalMachine {
                         panic!("Output value out of range");
                     }
                     // Write the raw byte directly to stdout
-                    std::io::stdout()
+                    io::stdout()
                         .write_all(&[value as u8])
                         .expect("Failed to write output");
-                    std::io::stdout().flush().expect("Failed to flush output");
+                    io::stdout().flush().expect("Failed to flush output");
                 }
-                11 => {
+                INPUT => {
                     let mut buffer = [0; 1];
-                    if let Ok(_) = std::io::stdin().read_exact(&mut buffer) {
+                    if let Ok(_) = io::stdin().read_exact(&mut buffer) {
                         self.registers[c] = buffer[0] as Platter;
                     } else {
                         self.registers[c] = u32::MAX;
                     }
                 }
-                12 => {
+                LOAD_PROGRAM => {
                     if self.registers[b] != 0 {
                         let program = self
                             .arrays
@@ -126,7 +141,7 @@ impl UniversalMachine {
                     }
                     self.execution_finger = self.registers[c] as usize;
                 }
-                13 => {
+                ORTHOGRAPHY => {
                     let a = ((instruction >> 25) & 0x7) as usize;
                     let value = instruction & 0x1FFFFFF;
                     self.registers[a] = value;
