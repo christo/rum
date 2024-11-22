@@ -111,10 +111,6 @@ impl UniversalMachine {
                     if value > 255 {
                         panic!("Output value out of range");
                     }
-                    let value = self.regs[c];
-                    if value > 255 {
-                        panic!("Output value out of range");
-                    }
                     // Write the raw byte directly to stdout
                     io::stdout()
                         .write_all(&[value as u8])
